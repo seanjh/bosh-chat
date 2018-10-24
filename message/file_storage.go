@@ -1,6 +1,7 @@
 package message
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -17,7 +18,7 @@ const storageExt = "msg"
 type fileStorage struct{}
 
 type writeJob struct {
-	content []byte
+	content string
 	index   chan<- int
 	err     chan<- error
 }
@@ -42,13 +43,16 @@ func filenameIndex(filename string) int {
 }
 
 func messageFilename(index int) string {
-	return string(index) + storageExt
+	name := fmt.Sprintf("%d.%s", index, storageExt)
+	return filepath.Join(storagePath, name)
 }
 
-func (s *fileStorage) write(content []byte) (chan int, chan error) {
+func (s *fileStorage) write(content string) (chan int, chan error) {
+	log.Println("writing contents to file", content)
 	ci := make(chan int, 1)
 	ce := make(chan error, 1)
 
+	log.Printf("sending contents to write queue: '%s'\n", content)
 	writeQueue <- writeJob{content, ci, ce}
 
 	return ci, ce
@@ -70,17 +74,20 @@ func largestIndex() int {
 	return filenameIndex(filename)
 }
 
-func queueWriter(c <-chan writeJob) {
+// StartWriter TODO
+func StartWriter() {
+	c := writeQueue
 	util.EnsurePath(storagePath)
 	lastIndex := largestIndex()
+	log.Printf("Starting queue writer at index %d\n", lastIndex)
 	go func(index int) {
 		for job := range c {
 			log.Println("Received write job for index", index)
 			filename := messageFilename(index)
-			log.Println("Writing", filename)
-			err := ioutil.WriteFile(filename, job.content, 0400)
+			log.Printf("Writing file %s: '%s'\n", filename, job.content)
+			err := ioutil.WriteFile(filename, []byte(job.content), 0400)
 			if err != nil {
-				log.Println("Error writing output", job.content)
+				log.Println("Error writing file", filename)
 				job.err <- err
 			} else {
 				log.Println("Finished writing", filename)
@@ -94,13 +101,14 @@ func queueWriter(c <-chan writeJob) {
 }
 
 func (s *fileStorage) wait(last, limit int) <-chan *message {
+	log.Printf("Waiting from index %d for up to %d messages\n", last, limit)
 	c := make(chan *message, limit)
 
 	go func(timeout time.Duration) {
 		defer close(c)
+		log.Println("Timed out waiting for messages")
 		<-time.Tick(timeout)
-		log.Println("timeout waiting for messages")
-	}(10 * time.Second)
+	}(60 * time.Second)
 
 	return c
 }

@@ -34,7 +34,9 @@ func main() {
 		"/static/",
 		http.StripPrefix("/static/", http.FileServer(http.Dir("static"))),
 	)
+
 	http.HandleFunc("/messages/", message.HandleMessages)
+	message.StartWriter()
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -1,5 +1,3 @@
-import { sayHello } from './test'
-
 async function sleeper (ms = 1000) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -29,8 +27,6 @@ async function * loadMessages () {
 }
 
 (async function main () {
-  sayHello()
-
   for await (const resp of loadMessages()) {
     console.debug(`Received ${resp.status} response.`)
   }

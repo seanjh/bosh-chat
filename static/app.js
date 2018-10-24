@@ -90,23 +90,10 @@
 /*!************************!*\
   !*** ./client/main.js ***!
   \************************/
-/*! no exports provided */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports) {
 
-"use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _test__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./test */ \"./client/test.js\");\n\n\nasync function sleeper (ms = 1000) {\n  return new Promise((resolve, reject) => {\n    setTimeout(() => {\n      resolve()\n    }, ms)\n  })\n}\n\nconst DEFAULT_WAIT_MS = 1000\n\nasync function * loadMessages () {\n  let failure = 0\n  let ms = DEFAULT_WAIT_MS\n  while (true && failure < 10) {\n    const wait = sleeper(ms)\n    const resp = await fetch('/messages/')\n    yield resp\n    if (resp.status !== 200) {\n      failure++\n      ms *= 2\n    } else {\n      failure = 0\n      ms = DEFAULT_WAIT_MS\n    }\n    await wait\n  }\n}\n\n(async function main () {\n  Object(_test__WEBPACK_IMPORTED_MODULE_0__[\"sayHello\"])()\n\n  for await (const resp of loadMessages()) {\n    console.debug(`Received ${resp.status} response.`)\n  }\n  console.debug('Giving up.')\n})()\n\n\n//# sourceURL=webpack:///./client/main.js?");
-
-/***/ }),
-
-/***/ "./client/test.js":
-/*!************************!*\
-  !*** ./client/test.js ***!
-  \************************/
-/*! exports provided: sayHello */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"sayHello\", function() { return sayHello; });\nconst sayHello = () => {\n  console.log('Hello!')\n}\n\n\n//# sourceURL=webpack:///./client/test.js?");
+eval("async function sleeper (ms = 1000) {\n  return new Promise((resolve, reject) => {\n    setTimeout(() => {\n      resolve()\n    }, ms)\n  })\n}\n\nconst DEFAULT_WAIT_MS = 1000\n\nasync function * loadMessages () {\n  let failure = 0\n  let ms = DEFAULT_WAIT_MS\n  while (true && failure < 10) {\n    const wait = sleeper(ms)\n    const resp = await fetch('/messages/')\n    yield resp\n    if (resp.status !== 200) {\n      failure++\n      ms *= 2\n    } else {\n      failure = 0\n      ms = DEFAULT_WAIT_MS\n    }\n    await wait\n  }\n}\n\n(async function main () {\n  for await (const resp of loadMessages()) {\n    console.debug(`Received ${resp.status} response.`)\n  }\n  console.debug('Giving up.')\n})()\n\n\n//# sourceURL=webpack:///./client/main.js?");
 
 /***/ })
 
