@@ -15,8 +15,8 @@ const errIndex = -1
 const maxMessages = 10
 
 type message struct {
-	index int    `json:"index"`
-	body  string `json:"body"`
+	Index int    `json:"index"`
+	Body  string `json:"body"`
 }
 
 type reader interface {
@@ -35,7 +35,7 @@ type readWriter interface {
 }
 
 func (m *message) String() string {
-	return "message@" + string(m.index)
+	return "message@" + string(m.Index)
 }
 
 type messageHandler = func(index int, body io.ReadCloser) (string, int, error)
@@ -97,12 +97,13 @@ func messageAppend(_ int, body io.ReadCloser) (string, int, error) {
 
 	decoder := json.NewDecoder(body)
 	m := &message{}
-	err := decoder.Decode(&m)
+	err := decoder.Decode(m)
 	if err != nil {
 		return "", errIndex, err
 	}
+	log.Printf("New message body: '%s'\n", m.Body)
 
-	ci, ce := s.write(m.body)
+	ci, ce := s.write(m.Body)
 	select {
 	case index := <-ci:
 		log.Println("Finished writing")
@@ -121,7 +122,7 @@ func messageWait(index int, _ io.ReadCloser) (string, int, error) {
 	i, last := 0, index
 	for m := range s.wait(index, maxMessages) {
 		log.Println("Received new message from wait", m)
-		last = m.index
+		last = m.Index
 		tmp[i] = *m
 		msgs = tmp[:i]
 		i++
