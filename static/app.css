@@ -1,0 +1,27 @@
+.container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  align-content: center;
+}
+
+.item {
+}
+
+button#send {
+  margin-left: 10px;
+}
+
+.chat {
+  box-sizing: border-box;
+  font-family: Verdana, Tahoma, Arial, Helvetica, sans-serif;
+  overflow-y: scroll;
+  width: 100%;
+}
+
+input#message {
+}
+
+textarea#chat {
+  resize: none;
+}

@@ -44,16 +44,6 @@ func messageSession(handler messageHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sess := session.LoadCookie(r)
 
-		//log.Println("Request Method:", r.Method)
-		//log.Println("Request Header:", r.Header)
-		//log.Println("Request Host:", r.Host)
-		//log.Println("Request ContentLength:", r.ContentLength)
-		//log.Println("Request Form:", r.Form)
-		//log.Println("Request PostForm:", r.PostForm)
-		//log.Println("Request MultipartForm:", r.MultipartForm)
-		//log.Println("Request RemoteAddr:", r.RemoteAddr)
-		//log.Println("Request TransferEncoding:", r.TransferEncoding)
-
 		content, index, err := handler(sess.Pos, r.Body)
 		if err != nil {
 			log.Println(err)
@@ -72,7 +62,6 @@ func messageSession(handler messageHandler) http.HandlerFunc {
 		}
 		http.SetCookie(w, sess.Cookie())
 
-		w.WriteHeader(http.StatusCreated)
 		fmt.Fprintf(w, content)
 	}
 }
@@ -86,6 +75,7 @@ func HandleMessages(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == http.MethodPost {
 		log.Println("Handling message POST")
 		messageSession(messageAppend)(w, r)
+		//w.WriteHeader(http.StatusCreated)
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
@@ -101,7 +91,6 @@ func messageAppend(_ int, body io.ReadCloser) (string, int, error) {
 	if err != nil {
 		return "", errIndex, err
 	}
-	log.Printf("New message body: '%s'\n", m.Body)
 
 	ci, ce := s.write(m.Body)
 	select {

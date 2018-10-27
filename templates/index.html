@@ -3,11 +3,21 @@
   <head>
     <meta charset="utf-8">
     <title>Hello</title>
+    <link rel="preload" href="/static/app.css" as="style">
     <link rel="preload" href="/static/app.js" as="script">
+
+    <link rel="stylesheet" href="/static/app.css">
   </head>
   <body>
-    <h2>Chat</h2>
-    <ul id="messages"></ul>
+    <div>
+      <textarea id="chat" name="chat" class="chat chatroom"
+        readonly="true" rows="20" minlength="200"></textarea>
+    </div>
+    <div class="container">
+      <input id="message" name="message" type="text"
+        class="chat chatmessage item" autofocus ></input>
+      <button id="send" class="item">Send</input>
+    </div>
 
     <script src="/static/app.js" async="true"></script>
   </body>

@@ -14,6 +14,7 @@ import (
 
 const storagePath = "/tmp/messages"
 const storageExt = "msg"
+const timeoutSecs = 10
 
 type fileStorage struct{}
 
@@ -48,13 +49,11 @@ func messageFilename(index int) string {
 }
 
 func (s *fileStorage) write(content string) (chan int, chan error) {
-	log.Println("writing contents to file", content)
 	ci := make(chan int, 1)
 	ce := make(chan error, 1)
 
-	log.Printf("sending contents to write queue: '%s'\n", content)
+	log.Printf("sending contents to write queue")
 	writeQueue <- writeJob{content, ci, ce}
-
 	return ci, ce
 }
 
@@ -108,7 +107,7 @@ func (s *fileStorage) wait(last, limit int) <-chan *message {
 		defer close(c)
 		log.Println("Timed out waiting for messages")
 		<-time.Tick(timeout)
-	}(60 * time.Second)
+	}(timeoutSecs * time.Second)
 
 	return c
 }
