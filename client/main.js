@@ -46,6 +46,8 @@ function appendMessages (messages = [], buff = []) {
     const deficit = MAX_MESSAGES - total
     if (deficit < 0) {
       buff = buff.slice(0 - deficit).concat(content)
+    } else {
+      buff = buff.concat(content)
     }
   } else {
     console.debug('No messages')

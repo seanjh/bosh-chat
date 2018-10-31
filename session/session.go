@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -24,6 +25,10 @@ const sessionsPath = "/tmp/sessions"
 type Session struct {
 	ID  string `json:"id"`
 	Pos int    `json:"pos"`
+}
+
+func (s *Session) String() string {
+	return fmt.Sprintf("session-%s@%d", s.ID, s.Pos)
 }
 
 // newID creates a 128 bit random hex-encoded ID number
@@ -79,10 +84,15 @@ func LoadCookie(r *http.Request) *Session {
 
 	s, err := read(getFilename(cookie.Value))
 	if err != nil {
-		return NewSession()
+		s = NewSession()
+		err = s.Save()
+		log.Println("Creating new session")
+		if err != nil {
+			log.Println("Failed to create new session")
+		}
 	}
 
-	log.Println("Loaded session from cookie")
+	log.Println("Session loaded:", s)
 	return s
 }
 
@@ -95,7 +105,7 @@ func (m *Session) Save() error {
 		log.Println("Failed to marshal session:", err)
 		return err
 	}
-	err = ioutil.WriteFile(getFilename(m.ID), b, 0700)
+	err = ioutil.WriteFile(getFilename(m.ID), b, 0600)
 	if err != nil {
 		log.Println("Failed to save session:", err)
 		return err

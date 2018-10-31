@@ -35,7 +35,7 @@ type readWriter interface {
 }
 
 func (m *message) String() string {
-	return "message@" + string(m.Index)
+	return fmt.Sprintf("message@%d", m.Index)
 }
 
 type messageHandler = func(index int, body io.ReadCloser) (string, int, error)
@@ -52,8 +52,11 @@ func messageSession(handler messageHandler) http.HandlerFunc {
 			return
 		}
 
-		sess.Pos = index
-		err = sess.Save()
+		if sess.Pos != index {
+			log.Printf("Saving updated session index %d->%d\n", sess.Pos, index)
+			sess.Pos = index
+			err = sess.Save()
+		}
 		if err != nil {
 			log.Println("Failed to save session", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -62,7 +65,10 @@ func messageSession(handler messageHandler) http.HandlerFunc {
 		}
 		http.SetCookie(w, sess.Cookie())
 
-		fmt.Fprintf(w, content)
+		_, err = fmt.Fprintf(w, content)
+		if err != nil {
+			log.Println("Error writing response", err)
+		}
 	}
 }
 
@@ -75,7 +81,7 @@ func HandleMessages(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == http.MethodPost {
 		log.Println("Handling message POST")
 		messageSession(messageAppend)(w, r)
-		//w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(http.StatusCreated)
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
@@ -95,7 +101,6 @@ func messageAppend(_ int, body io.ReadCloser) (string, int, error) {
 	ci, ce := s.write(m.Body)
 	select {
 	case index := <-ci:
-		log.Println("Finished writing")
 		return "", index, nil
 	case err = <-ce:
 		log.Println("Failed to write message")
@@ -112,8 +117,10 @@ func messageWait(index int, _ io.ReadCloser) (string, int, error) {
 	for m := range s.wait(index, maxMessages) {
 		log.Println("Received new message from wait", m)
 		last = m.Index
+		log.Println("New last index:", last)
 		tmp[i] = *m
-		msgs = tmp[:i]
+		msgs = tmp[:i+1]
+		log.Println("Total messages:", len(msgs))
 		i++
 	}
 
